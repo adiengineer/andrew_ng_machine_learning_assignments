@@ -1,0 +1,63 @@
+function [C, sigma] = dataset3Params(X, y, Xval, yval)
+%EX6PARAMS returns your choice of C and sigma for Part 3 of the exercise
+%where you select the optimal (C, sigma) learning parameters to use for SVM
+%with RBF kernel
+%   [C, sigma] = EX6PARAMS(X, y, Xval, yval) returns your choice of C and 
+%   sigma. You should complete this function to return the optimal C and 
+%   sigma based on a cross-validation set.
+%
+
+% You need to return the following variables correctly.
+C = 1;
+sigma = 0.3;
+
+% ====================== YOUR CODE HERE ======================
+% Instructions: Fill in this function to return the optimal C and sigma
+%               learning parameters found using the cross validation set.
+%               You can use svmPredict to predict the labels on the cross
+%               validation set. For example, 
+%                   predictions = svmPredict(model, Xval);
+%               will return the predictions on the cross validation set.
+%
+%  Note: You can compute the prediction error using 
+%        mean(double(predictions ~= yval))
+%
+
+% we will need to iterate over 8X8 list of sigma and C
+% this will have to be done as for evert step, a new hyp is generated
+% using the params selected and is evaluated. There might be a better
+% method to do the selection, check it out.
+C_cand= [0.01,0.03,0.1,0.3,1,3,10,30];
+sigma_cand= [0.01,0.03,0.1,0.3,1,3,10,30];
+% For now, iterating over the vectors.
+
+best_i=0;
+best_j=0;
+min_misclassi_ratio=realmax; %dummy to ensure min setting on the first iteration
+   for i=1:length(C_cand)
+        for j=1:length(sigma_cand)
+            model= svmTrain(X, y, C_cand(i), @(x1, x2) gaussianKernel(x1, x2, sigma_cand(j))); %get hyp for these parti values of C and sig
+            predictions = svmPredict(model, Xval); %bug solved: train on training set, but test on the cross validation set.
+            
+            %debug
+            %sX=size(X)
+            %presize=size(predictions)
+            %yvalsize=size(yval)
+            
+            curr_ratio=mean(double(predictions ~= yval));
+            
+            if (curr_ratio < min_misclassi_ratio)
+                best_i=i;
+                best_j=j;
+                min_misclassi_ratio=curr_ratio;
+            end
+        end
+   end
+   
+   %return the best sigma and C
+   C= C_cand(best_i);
+   sigma=sigma_cand(best_j);
+   
+% =========================================================================
+
+end
